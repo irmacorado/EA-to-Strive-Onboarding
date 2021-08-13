@@ -43,7 +43,7 @@ logger.setLevel('INFO')
 
 ## edits start here
 
-url = "https://api.securevan.com/v4/changedEntityExportJobs/resources"
+url = "https://api.securevan.com/v4/changedEntityExportJobs/fields/ContactHistory"
 
 headers = {"Accept": "application/json"}
 
