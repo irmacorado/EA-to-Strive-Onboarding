@@ -41,10 +41,8 @@ logger.setLevel('INFO')
 
 
 
-
-
+  
 ## edits start here
-import requests
 
 url = "https://api.securevan.com/v4/changedEntityExportJobs/fields/ContactsOnlineForms"
 
