@@ -47,6 +47,10 @@ logger.setLevel('INFO')
 url = "https://api.securevan.com/v4/changedEntityExportJobs/fields/ContactsOnlineForms"
 
 headers = {"Accept": "application/json", "Authorization": username + password}
+headers = {
+    "Accept": "application/json",
+    "Authorization": everyaction_auth
+}
 
 response = requests.request("GET", url, headers=headers)
 
