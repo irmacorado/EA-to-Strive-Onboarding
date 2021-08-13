@@ -41,13 +41,12 @@ logger.setLevel('INFO')
 
 
 
-  
 ## edits start here
 
 url = "https://api.securevan.com/v4/changedEntityExportJobs/fields/ContactsOnlineForms"
 
-headers = {"Accept": "application/json", "Authorization": "TSMMJ.001.33 " + "e329d6f8-2cdf-e77e-92e4-0dc904be40a6"}
+headers = {"Accept": "application/json"}
 
-response = requests.request("GET", url, headers=headers)
+response = requests.request("GET", url, headers=headers, auth = everyaction_auth, stream = True)
 
 print(response.text)
