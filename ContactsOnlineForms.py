@@ -48,6 +48,6 @@ url = "https://api.securevan.com/v4/changedEntityExportJobs/fields/ContactsOnlin
 
 headers = {"Accept": "application/json"}
 
-response = requests.request("GET", url, headers=headers)
+response = requests.request("GET", url, headers=headers, auth = everyaction_auth)
 
 print(response.text)
