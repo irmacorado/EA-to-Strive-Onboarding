@@ -58,6 +58,6 @@ querystring = {"$expand":"phones,emails"}
 headers = {"Accept": "application/json"
           }
 
-response = requests.request("GET", url, headers=headers, auth = everyaction_auth, stream = True)
+response = requests.request("GET", url, headers=headers, params=querystring, auth = everyaction_auth, stream = True)
 
 print(response.text)
