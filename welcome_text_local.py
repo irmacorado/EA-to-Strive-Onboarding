@@ -236,8 +236,8 @@ def send_contacts_to_strive(df_for_strive):
 
 if __name__ == "__main__":
     print("Initiate Export Job")
-    everyaction_contacts_ download_url = get_every_action_contacts(everyaction_headers, everyaction_auth)
-    ContactsdownloadLink = get_export_job(everyaction_contacts_ download_url, everyaction_headers, everyaction_auth)
+    everyaction_contacts_download_url = get_every_action_contacts(everyaction_headers, everyaction_auth)
+    ContactsdownloadLink = get_export_job(everyaction_contacts_download_url, everyaction_headers, everyaction_auth)
 
     everyaction_forms_download_url = get_every_action_forms(everyaction_headers, everyaction_auth)
     FormsdownloadLink = get_export_job(everyaction_forms_download_url, everyaction_headers, everyaction_auth)
