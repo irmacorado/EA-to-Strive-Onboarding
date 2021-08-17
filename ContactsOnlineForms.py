@@ -52,9 +52,12 @@ response = requests.request("GET", url, headers=headers, auth = everyaction_auth
 print(response.text)
 """
 
-url = "https://api.securevan.com/v4/onlineActionsForms"
+url = "https://api.securevan.com/v4/people/find"
+payload = {"vanId": "100603321"}
 
-headers = {"Accept": "application/json"}
+headers = {"Accept": "application/json"
+           "Content-Type": "application/json"
+          }
 
 response = requests.request("GET", url, headers=headers, auth = everyaction_auth, stream = True)
 
