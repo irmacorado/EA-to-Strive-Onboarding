@@ -42,11 +42,20 @@ logger.setLevel('INFO')
 
 
 ## edits start here
-
+"""
 url = "https://api.securevan.com/v4/onlineActionsForms/IAJTrIE6iU-rygF7bXTGeg2"
 
 headers = {"Accept": "application/json"}
 
 response = requests.request("GET", url, headers=headers, auth = everyaction_auth, stream = True)
+
+print(response.text)
+"""
+
+url = "https://api.securevan.com/v4/onlineActionsForms"
+
+headers = {"Accept": "application/json"}
+
+response = requests.request("GET", url, headers=headers, auth = everyaction_auth, stream = True))
 
 print(response.text)
