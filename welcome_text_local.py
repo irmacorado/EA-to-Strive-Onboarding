@@ -63,6 +63,36 @@ def get_every_action_contacts(everyaction_headers, everyaction_auth):
     everyaction_download_url = f'{changed_entities_url}/{jobId}'
     return everyaction_download_url
 
+def get_every_action_forms(everyaction_headers, everyaction_auth):
+    """
+    Prepares the time strings for the EA API end point, creates the URL end point
+    and sends a request to the endpoint for a Forms record, with VanID AND Form Name.
+    Returns endpoint with the jobId for the download job to access the requested contacts.
+    """
+
+    # Prepare vstrings for Changed Entites API
+    max_time = datetime.now()
+    min_time = max_time - delta
+    max_time_string = max_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+    min_time_string = min_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # EveryAction Changed Entities parameters
+    base_everyaction_url = 'https://api.securevan.com/v4/'
+    everyaction_job = "changedEntityExportJobs"
+    changed_entities_url = urljoin(base_everyaction_url, everyaction_job)
+
+    form_submissions = {
+      "dateChangedFrom": 		min_time_string,
+      "dateChangedTo" : 		max_time_string,
+      "resourceType": 			"ContactsOnlineForms", ##get online forms
+      "requestedFields": 		["VanID", "FormName"],
+      "excludeChangesFromSelf": "false"
+    }
+
+    response = requests.post(changed_entities_url, json = form_submissions, headers = everyaction_headers, auth = everyaction_auth, stream = True)
+    jobId = str(response.json().get('exportJobId'))
+    everyaction_download_url = f'{changed_entities_url}/{jobId}'
+    return everyaction_download_url
 
 def get_export_job(everyaction_download_url, everyaction_headers, everyaction_auth):
     """
@@ -78,7 +108,7 @@ def get_export_job(everyaction_download_url, everyaction_headers, everyaction_au
     	time.sleep(20) # twenty second delay
     	try:
     		response = requests.get(everyaction_download_url, headers = everyaction_headers, auth = everyaction_auth)
-    		downloadLink = response.json().get('files')[0].get('downloadUrl')
+    		downloadLink = response.json().get('files')[0].get('downloadUrl') #downloadLink is a dataframe
     		break
     	except:
     		print("File not ready, trying again in 20 seconds")
@@ -89,7 +119,7 @@ def get_export_job(everyaction_download_url, everyaction_headers, everyaction_au
     	print("Export Job Complete")
     return downloadLink
 
-def prepare_data(downloadLink):
+def prepare_contacts_data(downloadLink):
     """
     Takes the downloaded dataframe of contacts and
     - Checks if contacts were created today
@@ -119,14 +149,47 @@ def prepare_data(downloadLink):
 
     # Filter for contacts that have opted in. Opted in = 1
     print(df_filtered['PhoneOptInStatus'])
-    df_for_strive = df_filtered.loc[df_filtered['PhoneOptInStatus'] == 1.0]
-    df_for_strive = df_for_strive[["VanID", "FirstName", "LastName", "Phone"]]
+    df_filtered_contacts = df_filtered.loc[df_filtered['PhoneOptInStatus'] == 1.0]
+    df_filtered_contacts = df_filtered_contacts[["VanID", "FirstName", "LastName", "Phone"]]
 
-    if len(df_for_strive) != 0:
+    if len(df_filtered_contacts) != 0:
         print("New folk to welcome! Let's send to Strive. They'll handle any deduping.")
     else:
         print("No opted in contacts. No contacts to send to Strive. Exiting.")
 
+
+    return df_filtered_contacts
+
+def prepare_forms_data(df_filtered_contacts, FormdownloadLink, FormName):
+    """
+    Takes the downloaded dataframe of contacts and
+    - Filters Forms data to named form
+    - Checks if contacts data exists in that form (AKA if the new contact was also had a form submission)
+
+    Then returns the final data frame that will be send to Strive.
+    """
+
+    df = pd.read_csv(FormdownloadLink)
+    # Save a csv for troubleshooting
+
+    # Filter for submissions from your form
+    df_filtered_forms = df.loc[df['FormName'] == FormName
+
+    if len(df_filtered_forms) > 0:
+        print(f"Found {len(df_filtered_forms)} submissions. Checking if they are new contacts.")
+    else:
+        sys.exit(f"No submissions for {FormName}. Exiting.")
+	
+	
+
+    # Merge with contacts df to get 1 df
+    df_for_strive = df_filtered_contacts.merge(df_filtered_forms, on='VanID')
+			       
+
+    if len(df_for_strive) != 0:
+        print(f"New folk from {FormName} to welcome! Let's send to Strive. They'll handle any deduping.")
+    else:
+        print(f"No opted in contacts from {FormName}. No contacts to send to Strive. Exiting.")
 
     return df_for_strive
 
@@ -170,9 +233,18 @@ def send_contacts_to_strive(df_for_strive):
     else:
     	print("No contacts to send to Strive.")
 
+
 if __name__ == "__main__":
     print("Initiate Export Job")
-    everyaction_download_url = get_every_action_contacts(everyaction_headers, everyaction_auth)
-    downloadLink = get_export_job(everyaction_download_url, everyaction_headers, everyaction_auth)
-    df_for_strive = prepare_data(downloadLink)
-    send_contacts_to_strive(df_for_strive)
+    everyaction_contacts_ download_url = get_every_action_contacts(everyaction_headers, everyaction_auth)
+    ContactsdownloadLink = get_export_job(everyaction_contacts_ download_url, everyaction_headers, everyaction_auth)
+
+    everyaction_forms_download_url = get_every_action_forms(everyaction_headers, everyaction_auth)
+    FormsdownloadLink = get_export_job(everyaction_forms_download_url, everyaction_headers, everyaction_auth)
+
+    df_filtered_contacts = prepare_contacts_data(ContactsdownloadLink)
+    df_for_strive = prepare_forms_data(df_filtered_contacts,FormsdownloadLink,FORMNAME)
+
+    print(df_for_strive)
+			       
+    # send_contacts_to_strive(df_for_strive)
