@@ -253,7 +253,7 @@ if __name__ == "__main__":
     FormsdownloadLink = get_export_job(everyaction_forms_download_url, everyaction_headers, everyaction_auth)
 
     df_filtered_contacts = prepare_contacts_data(ContactsdownloadLink)
-    df_for_strive = prepare_forms_data(df_filtered_contacts,FormsdownloadLink,FORMNAME)
+    df_for_strive = prepare_forms_data(df_filtered_contacts,FormsdownloadLink, "RuidoFest Ads")
 
     print(df_for_strive)
 			       
