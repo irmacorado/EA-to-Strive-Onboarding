@@ -55,7 +55,7 @@ print(response.text)
 url = "https://api.securevan.com/v4/people/find"
 payload = {"vanId": "100603321"}
 
-headers = {"Accept": "application/json"
+headers = {"Accept": "application/json",
            "Content-Type": "application/json"
           }
 
