@@ -52,13 +52,12 @@ response = requests.request("GET", url, headers=headers, auth = everyaction_auth
 print(response.text)
 """
 
-url = "https://api.securevan.com/v4/people/find"
-payload = {"vanId": "100603321"}
+url = "https://api.securevan.com/v4/people/100603321"
+querystring = {"$expand":"phones,emails"}
 
-headers = {"Accept": "application/json",
-           "Content-Type": "application/json"
+headers = {"Accept": "application/json"
           }
 
-response = requests.request("POST", url, headers=headers, auth = everyaction_auth, stream = True)
+response = requests.request("GET", url, headers=headers, auth = everyaction_auth, stream = True)
 
 print(response.text)
