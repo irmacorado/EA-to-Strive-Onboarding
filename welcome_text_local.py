@@ -5,6 +5,7 @@ from requests.auth import HTTPBasicAuth
 import time
 from datetime import datetime
 import os
+import logging
 import json
 import time
 from urllib.parse import urljoin
@@ -14,10 +15,11 @@ import sys
 # Set parameters
 delta  = timedelta(hours =  4) ## Set this to the frequency of your Container Script
 
-# Set local environmental variables
-van_key = os.environ['VAN_API_KEY']
-strive_key = os.environ['STRIVE_KEY']
+#CIVIS enviro variables
+van_key = os.environ['VAN_PASSWORD']
+strive_key = os.environ['STRIVE_PASSWORD']
 campaign_id = os.environ['STRIVE_CAMPAIGN_ID']
+
 
 # Set EA API credentials
 username = 'welcometext'  ## This can be anything
@@ -28,6 +30,14 @@ everyaction_headers = {"headers" : "application/json"}
 
 # Strive parameters
 strive_url = "https://api.strivedigital.org/"
+
+##### Set up logger #####
+logger = logging.getLogger(__name__)
+_handler = logging.StreamHandler()
+_formatter = logging.Formatter('%(levelname)s %(message)s')
+_handler.setFormatter(_formatter)
+logger.addHandler(_handler)
+logger.setLevel('INFO')
 
 #### Functions
 def get_every_action_contacts(everyaction_headers, everyaction_auth):
