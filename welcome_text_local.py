@@ -173,7 +173,7 @@ def prepare_forms_data(df_filtered_contacts, FormdownloadLink, FormName):
     # Save a csv for troubleshooting
 
     # Filter for submissions from your form
-    df_filtered_forms = df.loc[df['FormName'] == FormName
+    df_filtered_forms = df.loc[df['FormName'] == FormName]
 
     if len(df_filtered_forms) > 0:
         print(f"Found {len(df_filtered_forms)} submissions. Checking if they are new contacts.")
