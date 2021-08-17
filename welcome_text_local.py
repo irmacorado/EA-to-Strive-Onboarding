@@ -5,7 +5,6 @@ from requests.auth import HTTPBasicAuth
 import time
 from datetime import datetime
 import os
-import logging
 import json
 import time
 from urllib.parse import urljoin
@@ -13,13 +12,12 @@ from datetime import datetime, timedelta
 import sys
 
 # Set parameters
-delta  = timedelta(hours =  4) ## Set this to the frequency of your Container Script
+delta  = timedelta(hours =  56) ## Set this to the frequency of your Container Script
 
-#CIVIS enviro variables
+# Set local environmental variables
 van_key = os.environ['VAN_PASSWORD']
-strive_key = os.environ['STRIVE_PASSWORD']
-campaign_id = os.environ['STRIVE_CAMPAIGN_ID']
-
+# strive_key = os.environ['STRIVE_KEY']
+# campaign_id = os.environ['STRIVE_CAMPAIGN_ID']
 
 # Set EA API credentials
 username = 'welcometext'  ## This can be anything
@@ -31,21 +29,12 @@ everyaction_headers = {"headers" : "application/json"}
 # Strive parameters
 strive_url = "https://api.strivedigital.org/"
 
-##### Set up logger #####
-logger = logging.getLogger(__name__)
-_handler = logging.StreamHandler()
-_formatter = logging.Formatter('%(levelname)s %(message)s')
-_handler.setFormatter(_formatter)
-logger.addHandler(_handler)
-logger.setLevel('INFO')
-
 #### Functions
 def get_every_action_contacts(everyaction_headers, everyaction_auth):
     """
     Prepares the time strings for the EA API end point, creates the URL end point
     and sends a request to the endpoint for a Contacts record, with VanID, first name,
     last name, phone, SMS opt in status, and the date the contact was created.
-
     Returns endpoint with the jobId for the download job to access the requested contacts.
     """
 
@@ -132,42 +121,47 @@ def get_export_job(everyaction_download_url, everyaction_headers, everyaction_au
 def prepare_contacts_data(downloadLink):
     """
     Takes the downloaded dataframe of contacts and
-    - Checks if contacts were created today
+    - ## NOPE Checks if contacts were created today
     - Checks if contacts are opted in to SMS list
-
     Then returns the final data frame that will be send to Strive.
     """
 
     df = pd.read_csv(downloadLink)
     # Save a csv for troubleshooting
     if len(df) > 0:
-        print(f"Found {len(df)} modified contacts. Checking if created today.")
+        print(f"Found {len(df)} modified contacts. Checking if they're opted-in.")
     else:
-        sys.exit("No new contacts. Exiting.")
+        sys.exit("No new or modified contacts. Exiting.")
+        
+     ##checking here
+    print(df)
 
     # Filter for contacts that were created today
     # EveryAction returns a date, not a datetime, for DateCreated
     # Relying on Strive's dedupe upsert logic to not text people twice
-    df['DateCreated']= pd.to_datetime(df['DateCreated'], format='%Y-%m-%d')
-    df_filtered = df.loc[df['DateCreated'] ==  pd.to_datetime(datetime.now().date())]
+    
+    # df['DateCreated']= pd.to_datetime(df['DateCreated'], format='%Y-%m-%d')
+    # df_filtered = df.loc[df['DateCreated'] ==  pd.to_datetime(datetime.now().date())]
 
-    if len(df_filtered) > 0:
-        print(f"Found {len(df_filtered)} new contacts. Checking if they are opted in.")
-    else:
-        sys.exit("No contacts that were created today. Exiting.")
+    #if len(df_filtered) > 0:
+        #print(f"Found {len(df_filtered)} new contacts. Checking if they are opted in.")
+    #else:
+        #sys.exit("No contacts that were created today. Exiting.")
 
 
     # Filter for contacts that have opted in. Opted in = 1
-    print(df_filtered['PhoneOptInStatus'])
-    df_filtered_contacts = df_filtered.loc[df_filtered['PhoneOptInStatus'] == 1.0]
+    print(df['PhoneOptInStatus'])
+    df_filtered_contacts = df.loc[df['PhoneOptInStatus'] == 1.0]
     df_filtered_contacts = df_filtered_contacts[["VanID", "FirstName", "LastName", "Phone"]]
 
     if len(df_filtered_contacts) != 0:
-        print("New folk to welcome! Let's send to Strive. They'll handle any deduping.")
+        print(f"Found {len(df_filtered_contacts)} new opted in contacts! Checking if they're from our form.")
     else:
         print("No opted in contacts. No contacts to send to Strive. Exiting.")
 
 
+    
+    
     return df_filtered_contacts
 
 def prepare_forms_data(df_filtered_contacts, FormdownloadLink, FormName):
@@ -175,7 +169,6 @@ def prepare_forms_data(df_filtered_contacts, FormdownloadLink, FormName):
     Takes the downloaded dataframe of contacts and
     - Filters Forms data to named form
     - Checks if contacts data exists in that form (AKA if the new contact was also had a form submission)
-
     Then returns the final data frame that will be send to Strive.
     """
 
@@ -186,20 +179,21 @@ def prepare_forms_data(df_filtered_contacts, FormdownloadLink, FormName):
     df_filtered_forms = df.loc[df['FormName'] == FormName]
 
     if len(df_filtered_forms) > 0:
-        print(f"Found {len(df_filtered_forms)} submissions. Checking if they are new contacts.")
+        print(f"{FormName} has {len(df_filtered_forms)} submissions. Cross checking with opted-in contacts to see if they need to be uploaded to Strive.")
     else:
         sys.exit(f"No submissions for {FormName}. Exiting.")
-	
+        
+        
 	
 
     # Merge with contacts df to get 1 df
     df_for_strive = df_filtered_contacts.merge(df_filtered_forms, on='VanID')
-			       
 
     if len(df_for_strive) != 0:
-        print(f"New folk from {FormName} to welcome! Let's send to Strive. They'll handle any deduping.")
+        print(f"New folk from {FormName} to welcome! Let's send to Strive.They'll handle any deduping.")
     else:
-        print(f"No opted in contacts from {FormName}. No contacts to send to Strive. Exiting.")
+        print(f"No opted in contacts from {FormName} that need to be welcomed in Strive. Exiting.")
+
 
     return df_for_strive
 
@@ -253,7 +247,7 @@ if __name__ == "__main__":
     FormsdownloadLink = get_export_job(everyaction_forms_download_url, everyaction_headers, everyaction_auth)
 
     df_filtered_contacts = prepare_contacts_data(ContactsdownloadLink)
-    df_for_strive = prepare_forms_data(df_filtered_contacts,FormsdownloadLink, "RuidoFest Ads")
+    df_for_strive = prepare_forms_data(df_filtered_contacts,FormsdownloadLink,"RuidoFest Ads")
 
     print(df_for_strive)
 			       
