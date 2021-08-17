@@ -59,6 +59,6 @@ headers = {"Accept": "application/json",
            "Content-Type": "application/json"
           }
 
-response = requests.request("GET", url, headers=headers, auth = everyaction_auth, stream = True)
+response = requests.request("POST", url, headers=headers, auth = everyaction_auth, stream = True)
 
 print(response.text)
