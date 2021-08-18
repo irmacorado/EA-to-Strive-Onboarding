@@ -185,9 +185,9 @@ def create_phones_df(df_form_submissions):
         logger.info(f"No information or phone number for VANID: {vanid}.")
 
     if len(df_for_strive) != 0:
-        logger.info(f"{len(df_for_strive)} new folks to welcome! Let's send to Strive. They'll handle any deduping.")
+       logger.info(f"{len(df_for_strive)} new folks to welcome! Let's send to Strive. They'll handle any deduping.")
     else:
-	sys.exit("No contacts with opted-in phones to welcomed in Strive. Exiting.")
+       sys.exit("No contacts with opted-in phones to welcomed in Strive. Exiting.")
 
     return df_for_strive
 
