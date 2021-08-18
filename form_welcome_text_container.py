@@ -89,12 +89,12 @@ def get_export_job(everyaction_download_url, everyaction_headers, everyaction_au
     		downloadLink = response.json().get('files')[0].get('downloadUrl')
     		break
     	except:
-    		print("File not ready, trying again in 20 seconds")
+    		logger.info("File not ready, trying again in 20 seconds")
 
     if time.time() == timeout_start + timeout:
     	sys.exit("Export Job failed to download!")
     else:
-    	print("Export Job Complete")
+    	logger.info("Export Job Complete")
     return downloadLink
 
 def prepare_forms_data(FormdownloadLink):
@@ -111,7 +111,7 @@ def prepare_forms_data(FormdownloadLink):
     df_form_submissions = df.loc[df['FormName'] == van_form]
     
     if len(df_form_submissions) > 0:
-      print(f"{van_form} has {len(df_form_submissions)} submissions. Finding their phone numbers.")
+      logger.info(f"{van_form} has {len(df_form_submissions)} submissions. Finding their phone numbers.")
     else:
       sys.exit(f"No submissions for {van_form}. Exiting.")
     return df_form_submissions
@@ -179,15 +179,15 @@ def create_phones_df(df_form_submissions):
       person_dict = get_every_action_info(everyaction_headers, everyaction_auth, vanid)
       
       if len(person_dict) > 0:
-        print(f"Information available for (VANID: {vanid})!")
+        logger.info(f"Information available for (VANID: {vanid}).")
         df_for_strive = df_for_strive.append(person_dict, ignore_index=True) # couldn't figure out how to remove the person_dict headers!
       else:
-        print(f"No information or phone number for VANID: {vanid}.")
+        logger.info(f"No information or phone number for VANID: {vanid}.")
 
     if len(df_for_strive) != 0:
-        print(f"{len(df_for_strive)} new folks to welcome! Let's send to Strive. They'll handle any deduping.")
+        logger.info(f"{len(df_for_strive)} new folks to welcome! Let's send to Strive. They'll handle any deduping.")
     else:
-        print(f"No contacts with opted-in phones to welcomed in Strive. Exiting.")
+	sys.exit("No contacts with opted-in phones to welcomed in Strive. Exiting.")
 
     return df_for_strive
 
@@ -225,12 +225,12 @@ def send_contacts_to_strive(df_for_strive):
       response = requests.request("POST", 'https://api.strivedigital.org/members', headers = strive_headers, data = json.dumps(payload))
       
       if response.status_code == 201:
-        print(f"Successfully added: {first_name} {last_name}")
+        logger.info(f"Successfully added: {first_name} {last_name}")
       else:
-      	print(f"Was not able to add {first_name} {last_name} to Stive. Error: {response.status_code}")
+      	logger.info(f"Was not able to add {first_name} {last_name} to Stive. Error: {response.status_code}")
 
 if __name__ == "__main__":
-    print("Initiate Export Job")
+    logger.info("Initiate Export Job")
 
     everyaction_forms_download_url = get_every_action_forms(everyaction_headers, everyaction_auth)
     FormsdownloadLink = get_export_job(everyaction_forms_download_url, everyaction_headers, everyaction_auth)
